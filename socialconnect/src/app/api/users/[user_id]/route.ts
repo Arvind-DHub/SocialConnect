@@ -3,17 +3,13 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { verifyJWT, extractToken } from "@/lib/jwt";
 import { apiSuccess, apiError } from "@/lib/utils";
 
-type Params = { params: { user_id: string } };
+// ← params is now a Promise in Next.js 15
+type Params = { params: Promise<{ user_id: string }> };
 
-// GET /api/users/[user_id] — public, anyone can view a profile
-export async function GET(
-  request: NextRequest,
-  context: { params: { user_id: string } },
-) {
+export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const { user_id } = context.params;
+    const { user_id } = await params; // ← must await params
 
-    // Optionally get current user to check if they follow this profile
     const token = extractToken(request.headers.get("authorization"));
     let currentUserId: string | null = null;
     if (token) {
@@ -36,7 +32,6 @@ export async function GET(
 
     if (error || !user) return apiError("User not found", 404);
 
-    // Check if the current user follows this profile
     let is_following = false;
     if (currentUserId && currentUserId !== user_id) {
       const { data: follow } = await supabaseAdmin
