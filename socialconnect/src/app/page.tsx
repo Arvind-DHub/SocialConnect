@@ -6,7 +6,7 @@ export default function Home() {
           <h1 className="card-title text-primary">SocialConnect</h1>
           <p className="text-base-content/60">Setup working ✓</p>
           <div className="card-actions">
-            <button className="btn btn-primary">Get Started</button>
+            <button className="btn btn-primary">Lets Start</button>
           </div>
         </div>
       </div>
