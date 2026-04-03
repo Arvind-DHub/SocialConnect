@@ -6,9 +6,12 @@ import { apiSuccess, apiError } from "@/lib/utils";
 type Params = { params: { user_id: string } };
 
 // GET /api/users/[user_id] — public, anyone can view a profile
-export async function GET(request: NextRequest, { params }: Params) {
+export async function GET(
+  request: NextRequest,
+  context: { params: { user_id: string } },
+) {
   try {
-    const { user_id } = params;
+    const { user_id } = context.params;
 
     // Optionally get current user to check if they follow this profile
     const token = extractToken(request.headers.get("authorization"));
