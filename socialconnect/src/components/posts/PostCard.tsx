@@ -108,6 +108,24 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
       setIsDeleting(false);
     }
   };
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const res = await fetch(`/api/posts/${post.id}/comments/${commentId}`, {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+      if (res.ok) {
+        // Remove the comment from local state instantly
+        setComments((prev) => prev.filter((c) => c.id !== commentId));
+        setCommentCount((prev) => prev - 1);
+        toast.success("Comment deleted");
+      } else {
+        toast.error("Failed to delete comment");
+      }
+    } catch {
+      toast.error("Failed to delete comment");
+    }
+  };
 
   return (
     <div className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
@@ -250,18 +268,24 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                       {comment.author?.last_name[0]}
                     </div>
                     <div className="bg-base-200 rounded-2xl px-3 py-2 flex-1">
-                      <p className="text-xs font-semibold">
-                        @{comment.author?.username}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold">
+                          @{comment.author?.username}
+                        </p>
+                        {/* Only show delete if current user wrote this comment */}
+                        {user?.id === comment.author_id && (
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="text-xs text-error hover:underline"
+                          >
+                            delete
+                          </button>
+                        )}
+                      </div>
                       <p className="text-sm">{comment.content}</p>
                     </div>
                   </div>
                 ))}
-                {comments.length === 0 && (
-                  <p className="text-sm text-base-content/50 text-center py-2">
-                    No comments yet. Be first!
-                  </p>
-                )}
                 {user && (
                   <div className="flex gap-2 mt-2">
                     <input
