@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +9,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 
-export default function LoginPage() {
+// -------------------------------------------------------
+// Separate the component that uses useSearchParams
+// into its own component so we can wrap it in Suspense
+// -------------------------------------------------------
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/feed";
@@ -115,5 +120,23 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+// Wrap LoginForm in Suspense — as of Next.js 15 to avoid pre render
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body items-center justify-center py-12">
+            <span className="loading loading-spinner loading-lg text-primary" />
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
