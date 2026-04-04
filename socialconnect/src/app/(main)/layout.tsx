@@ -39,6 +39,14 @@ export default function MainLayout({
                 Feed
               </Link>
             </li>
+            <li>
+              <Link
+                href="/search"
+                className={pathname === "/search" ? "active" : ""}
+              >
+                Search
+              </Link>
+            </li>
             {user && (
               <li>
                 <Link

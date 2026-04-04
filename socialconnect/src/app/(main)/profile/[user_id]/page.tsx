@@ -7,6 +7,7 @@ import PostCard from "@/components/posts/PostCard";
 import { getDisplayName } from "@/lib/utils";
 import type { UserProfile, PostWithAuthor } from "@/types";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { user_id } = useParams<{ user_id: string }>();
@@ -98,6 +99,9 @@ export default function ProfilePage() {
     return (
       <div className="text-center py-12">
         <p className="text-2xl font-bold">User not found</p>
+        <Link href="/feed" className="btn btn-primary mt-4">
+          Go to Feed
+        </Link>
       </div>
     );
   }
@@ -122,6 +126,7 @@ export default function ProfilePage() {
                   {profile.last_name[0]}
                 </div>
               )}
+
               <div>
                 <h1 className="text-xl font-bold">{getDisplayName(profile)}</h1>
                 <p className="text-base-content/60">@{profile.username}</p>
@@ -134,7 +139,9 @@ export default function ProfilePage() {
             </div>
 
             {isOwnProfile ? (
-              <button className="btn btn-outline btn-sm">Edit Profile</button>
+              <Link href="/settings" className="btn btn-outline btn-sm">
+                Edit Profile
+              </Link>
             ) : currentUser ? (
               <button
                 onClick={handleFollow}
@@ -153,7 +160,7 @@ export default function ProfilePage() {
           </div>
 
           {profile.bio && (
-            <p className="mt-3 text-base leading-relaxed">{profile.bio}</p>
+            <p className="mt-4 text-base leading-relaxed">{profile.bio}</p>
           )}
 
           {profile.website && (
@@ -161,13 +168,13 @@ export default function ProfilePage() {
               href={profile.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="link link-primary text-sm"
+              className="link link-primary text-sm mt-1 inline-block"
             >
               🔗 {profile.website}
             </a>
           )}
 
-          <div className="flex gap-6 mt-3 pt-3 border-t border-base-200">
+          <div className="flex gap-6 mt-4 pt-4 border-t border-base-200">
             {[
               { label: "Posts", value: profile.posts_count },
               { label: "Followers", value: profile.followers_count },
@@ -182,12 +189,17 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <h2 className="text-lg font-semibold">Posts</h2>
+      <h2 className="text-lg font-semibold px-1">Posts</h2>
 
       {posts.length === 0 ? (
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body text-center py-8">
             <p className="text-base-content/50">No posts yet</p>
+            {isOwnProfile && (
+              <Link href="/posts/new" className="btn btn-primary btn-sm mt-2">
+                Create your first post
+              </Link>
+            )}
           </div>
         </div>
       ) : (
