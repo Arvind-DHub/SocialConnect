@@ -42,10 +42,20 @@ function LoginForm() {
         return;
       }
 
+      // Save to localStorage (for API calls)
       localStorage.setItem("auth-token", result.data.token);
       localStorage.setItem("user", JSON.stringify(result.data.user));
+
+      // Also save to cookie (for middleware to read)
+      // expires in 7 days, same as JWT expiry
+      document.cookie = `auth-token=${result.data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+
       toast.success("Welcome back!");
-      router.push(redirectTo);
+
+      // Use window.location instead of router.push
+      // This does a full page reload which ensures middleware
+      // picks up the new cookie properly
+      window.location.href = redirectTo;
     } catch {
       toast.error("Something went wrong.");
     } finally {

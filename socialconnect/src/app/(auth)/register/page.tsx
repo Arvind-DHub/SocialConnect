@@ -35,10 +35,15 @@ export default function RegisterPage() {
         return;
       }
 
+      // Save to localStorage
       localStorage.setItem("auth-token", result.data.token);
       localStorage.setItem("user", JSON.stringify(result.data.user));
+
+      // Save to cookie for middleware
+      document.cookie = `auth-token=${result.data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+
       toast.success("Welcome to SocialConnect!");
-      router.push("/feed");
+      window.location.href = "/feed";
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
