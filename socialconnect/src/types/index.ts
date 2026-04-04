@@ -29,13 +29,23 @@ export interface Post {
   is_active: boolean;
   like_count: number;
   comment_count: number;
+  created_at: string; // ← this was missing
   updated_at: string;
   author?: UserProfile;
 }
 
-export interface PostWithAuthor extends Post {
-  author: UserProfile;
+export interface PostWithAuthor {
+  id: string;
+  content: string;
+  author_id: string;
+  image_url: string | null;
+  is_active: boolean;
+  like_count: number;
+  comment_count: number;
+  created_at: string;
+  updated_at: string;
   is_liked?: boolean;
+  author: UserProfile; // ← required, not optional
 }
 
 export interface Comment {
