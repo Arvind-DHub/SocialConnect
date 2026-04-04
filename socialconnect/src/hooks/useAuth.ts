@@ -20,8 +20,13 @@ export function useAuth() {
   }, []);
 
   const logout = () => {
+    // Clear localStorage
     localStorage.removeItem("auth-token");
     localStorage.removeItem("user");
+
+    // Clear the cookie by setting it to expire immediately
+    document.cookie = "auth-token=; path=/; max-age=0; SameSite=Lax";
+
     setUser(null);
     setToken(null);
     fetch("/api/auth/logout", { method: "POST" });
