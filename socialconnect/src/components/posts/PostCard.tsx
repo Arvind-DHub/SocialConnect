@@ -98,6 +98,14 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
       });
       if (res.ok) {
         toast.success("Post deleted");
+
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          parsed.posts_count = Math.max(0, (parsed.posts_count || 1) - 1);
+          localStorage.setItem("user", JSON.stringify(parsed));
+        }
+
         onDelete?.(post.id);
       } else {
         toast.error("Failed to delete post");

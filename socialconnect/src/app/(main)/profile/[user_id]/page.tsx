@@ -11,19 +11,33 @@ import Link from "next/link";
 
 export default function ProfilePage() {
   const { user_id } = useParams<{ user_id: string }>();
-  const { user: currentUser, authHeaders, token } = useAuth();
+  const { user: currentUser, token } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<PostWithAuthor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
 
+  const fetchProfile = async () => {
+    const authToken = token || localStorage.getItem("auth-token");
+    const res = await fetch(`/api/users/${user_id}`, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    });
+    const data = await res.json();
+    if (data.success) {
+      setProfile(data.data);
+      setIsFollowing(data.data.is_following || false);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const authToken = token || localStorage.getItem("auth-token");
+
         const [profileRes, postsRes] = await Promise.all([
           fetch(`/api/users/${user_id}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
           }),
           fetch(`/api/posts?author_id=${user_id}`),
         ]);
@@ -50,7 +64,15 @@ export default function ProfilePage() {
       return;
     }
 
+    const authToken = token || localStorage.getItem("auth-token");
+    if (!authToken) {
+      toast.error("Please log in to follow users");
+      return;
+    }
+
     const wasFollowing = isFollowing;
+
+    // Optimistic update
     setIsFollowing(!wasFollowing);
     setProfile((prev) =>
       prev
@@ -67,9 +89,14 @@ export default function ProfilePage() {
     try {
       const res = await fetch(`/api/users/${user_id}/follow`, {
         method: wasFollowing ? "DELETE" : "POST",
-        headers: authHeaders,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
       });
+
       if (!res.ok) {
+        // Revert on failure
         setIsFollowing(wasFollowing);
         setProfile((prev) =>
           prev
@@ -81,9 +108,35 @@ export default function ProfilePage() {
               }
             : prev,
         );
+        const data = await res.json();
+        toast.error(data.error || "Failed to update follow");
       }
+    } catch {
+      setIsFollowing(wasFollowing);
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              followers_count: wasFollowing
+                ? prev.followers_count + 1
+                : prev.followers_count - 1,
+            }
+          : prev,
+      );
+      toast.error("Something went wrong");
     } finally {
       setIsFollowLoading(false);
+    }
+  };
+
+  // Called when a post is deleted — removes from list and refreshes count
+  const handlePostDeleted = async (postId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    // Refetch profile to get updated posts_count from DB
+    try {
+      await fetchProfile();
+    } catch {
+      // silently fail
     }
   };
 
@@ -203,7 +256,9 @@ export default function ProfilePage() {
           </div>
         </div>
       ) : (
-        posts.map((post) => <PostCard key={post.id} post={post} />)
+        posts.map((post) => (
+          <PostCard key={post.id} post={post} onDelete={handlePostDeleted} />
+        ))
       )}
     </div>
   );
